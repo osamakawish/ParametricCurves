@@ -4,40 +4,39 @@ using System.Numerics;
 
 namespace ParametricCurves;
 
-public class Monotone(SortedSet<double> values, bool isForward = true)
+public class Monotone(SortedSet<double> values, bool forward = true)
 {
     public static Monotone FromPartition(Partition partition, bool alongPartitionDirection = true)
-        => new(partition.SortedValues, partition.IsForward == alongPartitionDirection);
+        => new(partition.SortedValues, partition.Forward == alongPartitionDirection);
 
-    public Monotone(IEnumerable<double> values, bool isForward = true) : this(new SortedSet<double>(values), isForward) { }
+    public Monotone(IEnumerable<double> values, bool forward = true) : this(new SortedSet<double>(values), forward) { }
 
     public static Monotone Null { get; } = new([double.NaN], true);
     public bool IsNull => this == Null;
 
-    private SortedSet<double> _values { get; } = values;
-    public IReadOnlySet<double> Values => _values;
+    public IReadOnlySet<double> Values => values;
 
-    public bool IsBefore(double value) => isForward ? value <= Start : value >= Start;
-    public bool IsAfter(double value) => isForward ? value >= End : value <= End;
+    public bool IsBefore(double value) => forward ? value <= Start : value >= Start;
+    public bool IsAfter(double value) => forward ? value >= End : value <= End;
 
-    public double Start => isForward ? _values.Min : _values.Max;
-    public double End => isForward ? _values.Max : _values.Min;
+    public double Start => forward ? values.Min : values.Max;
+    public double End => forward ? values.Max : values.Min;
 
-    public double Min => _values.Min;
-    public double Max => _values.Max;
+    public double Min => values.Min;
+    public double Max => values.Max;
     public DoubleRange Range => new(Min, Max);
 
-    public double Span => _values.Max - _values.Min;
-    public int Count => _values.Count;
+    public double Span => Max - Min;
+    public int Count => values.Count;
 
-    public bool Prepend(double value) => IsBefore(value) && _values.Add(value);
-    public bool Append(double value) => IsAfter(value) && _values.Add(value);
+    public bool Prepend(double value) => IsBefore(value) && values.Add(value);
+    public bool Append(double value) => IsAfter(value) && values.Add(value);
 
-    private double Pop(double value) { _values.Remove(value); return value; }
+    private double Pop(double value) { values.Remove(value); return value; }
     public double PopStart() => Pop(Start);
     public double PopEnd() => Pop(End);
 
-    public bool Contains(double value) => _values.Min <= value && value <= _values.Max;
+    public bool Contains(double value) => values.Min <= value && value <= values.Max;
     public bool Intersects(Monotone other) => Contains(other.Min) || Contains(other.Max);
 
     /// <summary>
@@ -54,23 +53,23 @@ public class Monotone(SortedSet<double> values, bool isForward = true)
     /// 
     /// </summary>
     /// <param name="other"></param>
-    /// <param name="isForward"></param>
+    /// <param name="forward"></param>
     /// <param name="exists"></param>
     /// <returns></returns>
     /// <remarks><b>Note.</b> This may cause additional issues.</remarks>
-    public Monotone Intersect(Monotone other, bool isForward = true)
+    public Monotone Intersect(Monotone other, bool forward = true)
         => TryIntersectBounds(out var range, other)
-            ? UnionEnumerators(isForward, EnumerateOverRange(this, range), EnumerateOverRange(other, range))
+            ? UnionEnumerators(forward, EnumerateOverRange(this, range), EnumerateOverRange(other, range))
             : Null;
 
-    public Monotone InRange(DoubleRange range, bool isForward = true) => new(Values.Where(range.Contains), isForward);
+    public Monotone InRange(DoubleRange range, bool forward = true) => new(Values.Where(range.Contains), forward);
 
-    public Monotone IntersectOverRange(Monotone other, DoubleRange range, bool isForward = true)
+    public Monotone IntersectOverRange(Monotone other, DoubleRange range, bool forward = true)
     {
-        var monotone1 = InRange(range, isForward);
-        var monotone2 = other.InRange(range, isForward);
+        var monotone1 = InRange(range, forward);
+        var monotone2 = other.InRange(range, forward);
 
-        return monotone1.Intersect(monotone2, isForward);
+        return monotone1.Intersect(monotone2, forward);
     }
 
     private static IEnumerator<double> EnumerateOverRange(Monotone other, DoubleRange range)
@@ -81,12 +80,19 @@ public class Monotone(SortedSet<double> values, bool isForward = true)
         return j;
     }
 
+    /// <summary>
+    /// Intersects the two monotones. The returned monotone is always in the forward direction.<br/>
+    /// Use <see cref="Intersect(Monotone, bool)"/> to control the direction.
+    /// </summary>
+    /// <param name="left"></param>
+    /// <param name="right"></param>
+    /// <returns></returns>
     public static Monotone operator &(Monotone left, Monotone right) => left.Intersect(right);
 
-    public Monotone Union(Monotone other, bool isForward = true)
-        => UnionEnumerators(isForward, Values.GetEnumerator(), other.Values.GetEnumerator());
+    public Monotone Union(Monotone other, bool forward = true)
+        => UnionEnumerators(forward, Values.GetEnumerator(), other.Values.GetEnumerator());
 
-    private static Monotone UnionEnumerators(bool isForward, IEnumerator<double> i, IEnumerator<double> j)
+    private static Monotone UnionEnumerators(bool forward, IEnumerator<double> i, IEnumerator<double> j)
     {
         bool iterI = i.MoveNext();
         bool iterJ = j.MoveNext();
@@ -99,20 +105,20 @@ public class Monotone(SortedSet<double> values, bool isForward = true)
             else { values.Add(j.Current); iterJ = j.MoveNext(); }
         }
 
-        return new(values, isForward);
+        return new(values, forward);
     }
 
     public static Monotone operator|(Monotone left, Monotone right) => left.Union(right);
 
-    public (Monotone left, Monotone right) Subtract(Monotone other, bool isForward = true)
+    public (Monotone left, Monotone right) Subtract(Monotone other, bool forward = true)
     {
         var (left, right) = Range - other.Range;
-        return (IntersectOverRange(other, left, isForward), IntersectOverRange(other, right, isForward));
+        return (IntersectOverRange(other, left, forward), IntersectOverRange(other, right, forward));
     }
 
     public static (Monotone left, Monotone right) operator -(Monotone left, Monotone right) => left.Subtract(right);
 
-    public Monotone Add(Monotone other, bool isForward = true) => throw new NotImplementedException();
-
+    public Monotone Shifted(double shift) => new(Values.Select(x => x + shift), forward);
+    public Monotone Add(Monotone other, bool forward = true) => Union(other.Shifted(Max - other.Min), forward);
     public static Monotone operator +(Monotone left, Monotone right) => left.Add(right);
 }
