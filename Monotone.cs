@@ -1,11 +1,14 @@
 
+using System.Collections;
 using System.Collections.Immutable;
 using System.Numerics;
 
 namespace ParametricCurves;
 
-public class Monotone(SortedSet<double> values, bool forward = true)
+public class Monotone(SortedSet<double> values, bool forward = true) : IEnumerable<double>
 {
+    public Monotone(bool forward = true) : this([], forward) { }
+
     public static Monotone FromPartition(Partition partition, bool alongPartitionDirection = true)
         => new(partition.SortedValues, partition.Forward == alongPartitionDirection);
 
@@ -16,11 +19,12 @@ public class Monotone(SortedSet<double> values, bool forward = true)
 
     public IReadOnlySet<double> Values => values;
 
-    public bool IsBefore(double value) => forward ? value <= Start : value >= Start;
-    public bool IsAfter(double value) => forward ? value >= End : value <= End;
+    public bool IsBefore(double value) => Forward ? value <= Start : value >= Start;
+    public bool IsAfter(double value) => Forward ? value >= End : value <= End;
 
-    public double Start => forward ? values.Min : values.Max;
-    public double End => forward ? values.Max : values.Min;
+    public bool Forward { get => forward; set => forward = value; }
+    public double Start => Forward ? values.Min : values.Max;
+    public double End => Forward ? values.Max : values.Min;
 
     public double Min => values.Min;
     public double Max => values.Max;
@@ -118,7 +122,10 @@ public class Monotone(SortedSet<double> values, bool forward = true)
 
     public static (Monotone left, Monotone right) operator -(Monotone left, Monotone right) => left.Subtract(right);
 
-    public Monotone Shifted(double shift) => new(Values.Select(x => x + shift), forward);
+    public Monotone Shifted(double shift) => new(Values.Select(x => x + shift), Forward);
     public Monotone Add(Monotone other, bool forward = true) => Union(other.Shifted(Max - other.Min), forward);
+    public IEnumerator<double> GetEnumerator() => Values.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Values).GetEnumerator();
+
     public static Monotone operator +(Monotone left, Monotone right) => left.Add(right);
 }
