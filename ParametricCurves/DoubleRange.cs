@@ -2,8 +2,8 @@
 
 public readonly struct DoubleRange(double num1, double num2)
 {
-    public static DoubleRange Null { get; } = new DoubleRange(double.NaN, double.NaN);
-    public bool IsNull { get; } = double.IsNaN(num1) || double.IsNaN(num2);
+    public static DoubleRange NaN { get; } = new DoubleRange(double.NaN, double.NaN);
+    public bool IsNaN { get; } = double.IsNaN(num1) || double.IsNaN(num2);
 
     public double Min { get; } = Math.Min(num1, num2);
     public double Max { get; } = Math.Max(num1, num2);
@@ -15,7 +15,7 @@ public readonly struct DoubleRange(double num1, double num2)
         double lo = Math.Max(left.Min, right.Min);
         double hi = Math.Min(left.Max, right.Max);
 
-        return lo <= hi ? new DoubleRange(lo, hi) : Null;
+        return lo <= hi ? new DoubleRange(lo, hi) : NaN;
     }
 
     public static DoubleRange operator |(DoubleRange left, DoubleRange right)

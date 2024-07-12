@@ -51,7 +51,7 @@ public class Monotone(SortedSet<double> values, bool forward = true) : IEnumerab
     /// <returns>If the intersection exists, this returns the smallest range common to both. If the intersection does not exist, 
     /// this outputs the range between the two Monotones.</returns>
     public bool TryIntersectBounds(out DoubleRange range, Monotone other)
-        => (range = Range & other.Range).IsNull;
+        => (range = Range & other.Range).IsNaN;
 
     /// <summary>
     /// 

@@ -8,8 +8,16 @@ public class Monotone2D : IEnumerable<Point>
     private readonly Monotone _xMonotone;
     private readonly Monotone _yMonotone;
     public IEnumerable<Point> Points => _xMonotone.Zip(_yMonotone).Select(x => new Point(x.First, x.Second));
+    public PointRange Range => new(new(_xMonotone.Start, _yMonotone.Start), new(_xMonotone.End, _yMonotone.End));
 
-    public (bool xForward, bool yForward) Orientation => (_xMonotone.Forward, _yMonotone.Forward);
+    public (bool xForward, bool yForward) Orientation
+    {
+        get => (_xMonotone.Forward,  _yMonotone.Forward);
+        set => (_xMonotone.Forward, _yMonotone.Forward) = value;
+    }
+
+    public void FlipXOrientation() => _xMonotone.Forward = !_xMonotone.Forward;
+    public void FlipYOrientation() => _yMonotone.Forward = !_yMonotone.Forward;
 
     public bool IsClockwise => Orientation.xForward ^ Orientation.yForward;
     public bool IsCounterClockwise => Orientation.xForward == Orientation.yForward;
@@ -27,5 +35,7 @@ public class Monotone2D : IEnumerable<Point>
     public IEnumerator<Point> GetEnumerator() => Points.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Points).GetEnumerator();
 
-
+    // Check saved Desmos graph for efficient approach. Titled "Efficient Distance Check".
+    // Idea: Use octagonal filter.
+    public Vector ShortestVectorFromPoint(Point point) => throw new NotImplementedException();
 }
