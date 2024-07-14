@@ -7,4 +7,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="X:\Documents\!Osama Kawish\Code\source\repos\ParametricCurves\ParametricCurves\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="X:\Documents\!Osama Kawish\Code\source\repos\ParametricCurves\ParametricCurves\.editorconfig" />
+  </ItemGroup>
+
 </Project>

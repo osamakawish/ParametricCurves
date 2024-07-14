@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using ParametricCurves.Extensions;
+using System.Windows;
 using System.Windows.Shapes;
 
 namespace ParametricCurves;

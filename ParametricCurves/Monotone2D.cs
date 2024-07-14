@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using ParametricCurves.Extensions;
+using System.Collections;
 using System.Windows;
 
 namespace ParametricCurves;
@@ -37,5 +38,18 @@ public class Monotone2D : IEnumerable<Point>
 
     // Check saved Desmos graph for efficient approach. Titled "Efficient Distance Check".
     // Idea: Use octagonal filter.
-    public Vector ShortestVectorFromPoint(Point point) => throw new NotImplementedException();
+    public Vector ShortestVectorFromPoint(Point point)
+    {
+        var points = OctagonalFilterFrom(point);
+
+        throw new NotImplementedException();
+    }
+
+    private HashSet<Point> OctagonalFilterFrom(Point point)
+    {
+        var vecs = Points.Select(x => point - x).Select(v => v.OctagonLength());
+        
+
+        throw new NotImplementedException();
+    }
 }

@@ -1,11 +1,10 @@
 
 using System.Collections;
 using System.Collections.Immutable;
-using System.Numerics;
 
 namespace ParametricCurves;
 
-public class Monotone(SortedSet<double> values, bool forward = true) : IEnumerable<double>
+public class Monotone(SortedSet<double> values, bool forward = true) : ISet<double>
 {
     public Monotone(bool forward = true) : this([], forward) { }
 
@@ -32,6 +31,8 @@ public class Monotone(SortedSet<double> values, bool forward = true) : IEnumerab
 
     public double Span => Max - Min;
     public int Count => values.Count;
+
+    public bool IsReadOnly => false;
 
     public bool Prepend(double value) => IsBefore(value) && values.Add(value);
     public bool Append(double value) => IsAfter(value) && values.Add(value);
@@ -126,6 +127,21 @@ public class Monotone(SortedSet<double> values, bool forward = true) : IEnumerab
     public Monotone Add(Monotone other, bool forward = true) => Union(other.Shifted(Max - other.Min), forward);
     public IEnumerator<double> GetEnumerator() => Values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Values).GetEnumerator();
+    public bool Add(double item) => values.Add(item);
+    public void ExceptWith(IEnumerable<double> other) => values.ExceptWith(other);
+    public void IntersectWith(IEnumerable<double> other) => values.IntersectWith(other);
+    public bool IsProperSubsetOf(IEnumerable<double> other) => values.IsProperSubsetOf(other);
+    public bool IsProperSupersetOf(IEnumerable<double> other) => values.IsProperSupersetOf(other);
+    public bool IsSubsetOf(IEnumerable<double> other) => values.IsSubsetOf(other);
+    public bool IsSupersetOf(IEnumerable<double> other) => values.IsSupersetOf(other);
+    public bool Overlaps(IEnumerable<double> other) => values.Overlaps(other);
+    public bool SetEquals(IEnumerable<double> other) => values.SetEquals(other);
+    public void SymmetricExceptWith(IEnumerable<double> other) => values.SymmetricExceptWith(other);
+    public void UnionWith(IEnumerable<double> other) => values.UnionWith(other);
+    void ICollection<double>.Add(double item) => values.Add(item);
+    public void Clear() => values.Clear();
+    public void CopyTo(double[] array, int arrayIndex) => values.CopyTo(array, arrayIndex);
+    public bool Remove(double item) => values.Remove(item);
 
     public static Monotone operator +(Monotone left, Monotone right) => left.Add(right);
 }
