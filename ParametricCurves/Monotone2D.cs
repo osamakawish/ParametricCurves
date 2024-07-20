@@ -36,20 +36,24 @@ public class Monotone2D : IEnumerable<Point>
     public IEnumerator<Point> GetEnumerator() => Points.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Points).GetEnumerator();
 
-    // Check saved Desmos graph for efficient approach. Titled "Efficient Distance Check".
-    // Idea: Use octagonal filter.
-    public Vector ShortestVectorFromPoint(Point point)
+    public Point ClosestPoint(Point point)
     {
-        var points = OctagonalFilterFrom(point);
+        var points = Poly8FilterFromPoint(point);
+        var exactLenSquared = points.Select(point => (point, new Vector(point.X, point.Y).LengthSquared));
+        var comparer = Comparer<(Point point, double lenSquared)>
+            .Create((p, q) => p.lenSquared.CompareTo(q.lenSquared));
+        var min = exactLenSquared.Min(comparer);
 
-        throw new NotImplementedException();
+        return min.point;
     }
 
-    private HashSet<Point> OctagonalFilterFrom(Point point)
+    private IEnumerable<Point> Poly8FilterFromPoint(Point point)
     {
-        var vecs = Points.Select(x => point - x).Select(v => v.OctagonLength());
-        
-
-        throw new NotImplementedException();
+        var lens = Points.Select(x => point - x).Select(v => v.Poly8Length());
+        double min = lens.Min();
+        IEnumerable<(Point point, double len)> zip = Points.Zip(lens);
+        return zip
+            .Where(p => p.len - min <= VectorExtensions.Poly8Tolerance)
+            .Select(u => u.point);
     }
 }
