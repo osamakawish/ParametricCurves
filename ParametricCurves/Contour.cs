@@ -5,8 +5,13 @@ namespace ParametricCurves;
 
 public class Contour : ISet<Curve>
 {
+    public static readonly Contour Empty = new();
     private HashSet<Curve> _curves { get; } = [];
     public IReadOnlySet<Curve> Curves => _curves;
+
+    private Contour() { }
+
+    internal Contour(Curve curve) => _curves.Add(curve);
 
     public int Count => _curves.Count;
 

@@ -56,4 +56,7 @@ public class Monotone2D : IEnumerable<Point>
             .Where(p => p.len - min <= VectorExtensions.Poly8Tolerance)
             .Select(u => u.point);
     }
+
+    public IEnumerable<Point> Intersect(Monotone2D other, double tolerance)
+        => throw new NotImplementedException();
 }
